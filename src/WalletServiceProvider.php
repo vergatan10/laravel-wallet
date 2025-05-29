@@ -30,7 +30,7 @@ class WalletServiceProvider extends ServiceProvider
 
     public function register()
     {
-        // $this->mergeConfigFrom(__DIR__ . '/config/wallet.php', 'wallet');
+        $this->mergeConfigFrom(__DIR__ . '/config/wallet.php', 'wallet');
         $this->app->singleton('wallet-service', function ($app) {
             return new WalletService();
         });
