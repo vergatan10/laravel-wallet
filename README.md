@@ -22,7 +22,7 @@ Tambahkan di composer.json:
 Install via composer:
 
 ```bash
-composer require vergatan10/laravel-wallet:dev-main
+composer require vergatan10/laravel-wallet:1.0.0
 ```
 
 Publish config & migration:
