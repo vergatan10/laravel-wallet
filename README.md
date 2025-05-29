@@ -146,9 +146,9 @@ php artisan wallet:create {user_id}
 ## 📂 Struktur File Package
 
 packages/Vergatan10/Wallet/
-├── config/
-│ └── wallet.php
 ├── src/
+│ ├──config/
+│ │ └── wallet.php
 │ ├── WalletServiceProvider.php
 │ ├── Services/
 │ ├── Facades/
