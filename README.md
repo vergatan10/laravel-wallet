@@ -1,6 +1,6 @@
 # Laravel Wallet Package
 
-<b style="color:red">\*_Tested on Laravel 10 & 11_</b>
+<b style="color:red">\*_Supported Laravel versions: 10.x, 11.x_</b>
 
 Sebuah package Laravel untuk mengelola sistem wallet digital, termasuk fitur:
 
