@@ -17,22 +17,6 @@ Sebuah package Laravel untuk mengelola sistem wallet digital, termasuk fitur:
 
 ## 📦 Instalasi
 
-Tambahkan di composer.json:
-
-```json
-{
-  "require": {
-    "vergatan10/laravel-wallet": "dev-main"
-  },
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/vergatan10/laravel-wallet"
-    }
-  ]
-}
-```
-
 Install via composer:
 
 ```bash
