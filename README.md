@@ -1,5 +1,7 @@
 # Laravel Wallet Package
 
+<b style="color:red">\*_Tested on Laravel 10_</b>
+
 Sebuah package Laravel untuk mengelola sistem wallet digital, termasuk fitur:
 
 - Deposit
@@ -44,6 +46,19 @@ php artisan vendor:publish --provider="vendor\vergatan10\laravel-wallet\WalletSe
 php artisan migrate
 ```
 
+Tambahkan kode ini di model User
+
+```php
+// App/Models/User.php
+use Vergatan10\Wallet\Models\Wallet;
+
+// relasi ke wallet
+public function wallet()
+{
+    return $this->hasOne(Wallet::class);
+}
+```
+
 ---
 
 ## ⚙️ Konfigurasi
@@ -51,6 +66,7 @@ php artisan migrate
 Tambahkan ke .env jika ingin memberikan saldo awal otomatis saat user dibuat:
 
 ```env
+// .env
 WALLET_DEFAULT_BALANCE=10000
 ```
 
@@ -58,27 +74,78 @@ WALLET_DEFAULT_BALANCE=10000
 
 ## 🧬 Fitur Otomatis
 
+<b>_Khusus Laravel Breeze/Jetstream_</b>
 Wallet akan dibuat otomatis saat user mendaftar:
 
 - Auto-create saat event Registered di-trigger
 - Saldo awal mengikuti config wallet.default_balance
 
+\*Jika kamu create user secara manual ikuti langkah ini:
+
+Tambahkan kode ini untuk menjalankan event setelah create user
+
+```php
+// UserController.php
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Event;
+
+// create user
+$user = User::create([...]);
+// tambahkan kode ini untuk menjalankan event
+event(new Registered($user));
+```
+
 ---
 
 ## 📥 API Endpoints
 
-Semua route menggunakan prefix /api/wallet dan middleware auth:sanctum.
+Semua route menggunakan prefix `/api/wallet` dan middleware `auth:sanctum`.
 
-| Method | Endpoint                                  | Keterangan              |
-| ------ | ----------------------------------------- | ----------------------- |
-| GET    | /api/wallet/{id}                          | Get wallet balance      |
-| GET    | /api/wallet/{id}/transactions             | Riwayat transaksi       |
-| POST   | /api/wallet/{id}/deposit                  | Deposit ke wallet       |
-| POST   | /api/wallet/{id}/withdraw                 | Withdraw dari wallet    |
-| POST   | /api/wallet/{id}/transfer                 | Transfer ke wallet lain |
-| POST   | /api/wallet/{id}/transactions/{tx}/refund | Refund transaksi        |
-| POST   | /api/wallet/{id}/lock                     | Lock wallet             |
-| POST   | /api/wallet/{id}/unlock                   | Unlock wallet           |
+| Method | Endpoint                                            | Keterangan              | Body Contoh                                                                                                                               |
+| ------ | --------------------------------------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | /api/wallet/{wallet_id}                             | Get wallet balance      | -                                                                                                                                         |
+| GET    | /api/wallet/{wallet_id}/transactions                | Riwayat transaksi       | -                                                                                                                                         |
+| POST   | /api/wallet/{wallet_id}/deposit                     | Deposit ke wallet       | <pre>{<br> "amount": 10000,<br> "description": "Top up"<br>}</pre>                                                                        |
+| POST   | /api/wallet/{wallet_id}/withdraw                    | Withdraw dari wallet    | <pre>{<br> "amount": 5000,<br> "description": "Beli pulsa",<br> "meta": {<br> "ref": "REF123456"<br> }<br>}</pre>                         |
+| POST   | /api/wallet/{wallet_id}/transfer                    | Transfer ke wallet lain | <pre>{<br> "to_wallet_id": 2,<br> "amount": 2500,<br> "description": "Bayar utang",<br> "meta": {<br> "ref": "REF123456"<br> }<br>}</pre> |
+| POST   | /api/wallet/{wallet_id}/transactions/{tx_id}/refund | Refund transaksi        | -                                                                                                                                         |
+
+**Contoh Body Request:**
+
+- **Deposit**
+
+  ```json
+  {
+    "amount": 10000,
+    "description": "Top up"
+  }
+  ```
+
+- **Withdraw**
+
+  ```json
+  {
+    "amount": 5000,
+    "description": "Beli pulsa",
+    "meta": {
+      "ref": "REF123456",
+      ...
+    }
+  }
+  ```
+
+- **Transfer**
+  ```json
+  {
+    "to_wallet_id": 2,
+    "amount": 2500,
+    "description": "Bayar utang",
+    "meta": {
+      "ref": "REF123456",
+      ...
+    }
+  }
+  ```
 
 📌 Semua endpoint kecuali create hanya bisa diakses oleh pemilik wallet (dengan middleware wallet.owner)
 
@@ -106,9 +173,6 @@ Wallet::transfer($fromWallet, $toWallet, 2500, 'Transfer antar user');
 // Refund transaksi
 Wallet::refund($transaction);
 
-// Konfirmasi transfer (jika transfer pending)
-Wallet::confirmTransfer($transaction);
-
 // Lock / Unlock
 $wallet->update(['is_locked' => true]);
 ```
@@ -133,33 +197,27 @@ public function test_user_can_deposit()
 
 ---
 
-## 💠 Artisan Command (Opsional)
-
-Tambahkan command wallet:create jika kamu ingin bisa buat wallet via CLI:
-
-```bash
-php artisan wallet:create {user_id}
-```
-
----
-
 ## 📂 Struktur File Package
 
+```
 packages/Vergatan10/Wallet/
 ├── src/
-│ ├──config/
-│ │ └── wallet.php
-│ ├── WalletServiceProvider.php
-│ ├── Services/
-│ ├── Facades/
-│ ├── Listeners/
-│ ├── Models/
-│ ├── Http/
-│ │ ├── Controllers/
-│ │ ├── Middleware/
-│ ├── routes/
-└── database/
-└── migrations/
+│   ├── config/
+│   │   └── wallet.php
+│   ├── Contracts/
+│   ├── database/
+│   │   └── migrations/
+│   ├── Facades/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   └── Middleware/
+│   ├── Listeners/
+│   ├── Models/
+│   ├── routes/
+│   ├── Services/
+│   └── WalletServiceProvider.php
+└── composer.json
+```
 
 ---
 
