@@ -1,6 +1,6 @@
 {
     "name": "vergatan10/laravel-wallet",
-    "description": "Wallet module for Laravel with deposit, withdraw, and transfer features",
+    "description": "Laravel Wallet Package",
     "type": "library",
     "license": "MIT",
     "autoload": {
@@ -8,18 +8,9 @@
         "Vergatan10\\Wallet\\": "src/"
       }
     },
-    "extra": {
-      "laravel": {
-        "providers": [
-          "Vergatan10\\Wallet\\WalletServiceProvider"
-        ]
-      }
-    },
     "require": {
       "php": "^8.1",
-      "illuminate/support": "^10.0|^11.0"
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+      "illuminate/support": "^9.0|^10.0|^11.0"
+    }
   }
   
