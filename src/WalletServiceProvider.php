@@ -15,10 +15,7 @@ class WalletServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->loadRoutesFrom(__DIR__ . '/routes/api.php');
-        // $this->loadMigrationsFrom(__DIR__ . '/database/migrations');
-        // $this->publishes([
-        //     __DIR__ . '/config/wallet.php' => config_path('wallet.php'),
-        // ], 'wallet-config');
+        $this->loadMigrationsFrom(__DIR__ . '/database/migrations');
         $this->app->make(Router::class)->aliasMiddleware('wallet.owner', EnsureWalletOwner::class);
         $this->app->make(\Illuminate\Routing\Router::class)->aliasMiddleware(
             'wallet.owner',
@@ -27,7 +24,7 @@ class WalletServiceProvider extends ServiceProvider
         Event::listen(Registered::class, CreateWalletOnUserRegistered::class);
 
         $this->publishes([
-            __DIR__ . '/../config/wallet.php' => config_path('wallet.php'),
+            __DIR__ . '/config/wallet.php' => config_path('wallet.php'),
         ], 'wallet-config');
     }
 
