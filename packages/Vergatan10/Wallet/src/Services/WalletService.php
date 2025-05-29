@@ -1,0 +1,155 @@
+<?php
+
+namespace Vergatan10\Wallet\Services;
+
+use Illuminate\Support\Facades\DB;
+use Vergatan10\Wallet\Models\Wallet;
+use Vergatan10\Wallet\Models\Transaction;
+use Exception;
+
+class WalletService
+{
+    private function ensureWalletNotLocked(Wallet $wallet)
+    {
+        if ($wallet->is_locked) {
+            throw new \Exception("Wallet is locked");
+        }
+    }
+
+    /**
+     * Tambah saldo ke wallet
+     */
+    public function deposit(Wallet $wallet, float $amount, string $description = '', array $meta = []): Transaction
+    {
+        $this->ensureWalletNotLocked($wallet);
+        return DB::transaction(function () use ($wallet, $amount, $description, $meta) {
+            $wallet->increment('balance', $amount);
+
+            return $wallet->transactions()->create([
+                'type' => 'deposit',
+                'amount' => $amount,
+                'description' => $description,
+                'meta' => $meta,
+            ]);
+        });
+    }
+
+    /**
+     * Kurangi saldo dari wallet
+     */
+    public function withdraw(Wallet $wallet, float $amount, string $description = '', array $meta = []): Transaction
+    {
+        $this->ensureWalletNotLocked($wallet);
+        if ($wallet->balance < $amount) {
+            throw new Exception('Insufficient balance');
+        }
+
+        return DB::transaction(function () use ($wallet, $amount, $description, $meta) {
+            $wallet->decrement('balance', $amount);
+
+            return $wallet->transactions()->create([
+                'type' => 'withdraw',
+                'amount' => $amount,
+                'description' => $description,
+                'meta' => $meta,
+            ]);
+        });
+    }
+
+    /**
+     * Transfer saldo antar wallet
+     */
+    // public function transfer(Wallet $fromWallet, Wallet $toWallet, float $amount, string $description = '', array $meta = []): Transaction
+    // {
+    //     $this->ensureWalletNotLocked($wallet);
+    //     if ($fromWallet->balance < $amount) {
+    //         throw new Exception('Insufficient balance for transfer');
+    //     }
+
+    //     return DB::transaction(function () use ($fromWallet, $toWallet, $amount, $description, $meta) {
+    //         // Kurangi saldo pengirim
+    //         $fromWallet->decrement('balance', $amount);
+    //         $withdrawTransaction = $fromWallet->transactions()->create([
+    //             'type' => 'transfer',
+    //             'amount' => $amount,
+    //             'description' => $description ?: 'Transfer to wallet #' . $toWallet->id,
+    //             'meta' => $meta,
+    //             'related_wallet_id' => $toWallet->id,
+    //         ]);
+
+    //         // Tambah saldo penerima
+    //         $toWallet->increment('balance', $amount);
+    //         $depositTransaction = $toWallet->transactions()->create([
+    //             'type' => 'deposit',
+    //             'amount' => $amount,
+    //             'description' => $description ?: 'Transfer from wallet #' . $fromWallet->id,
+    //             'meta' => $meta,
+    //             'related_wallet_id' => $fromWallet->id,
+    //         ]);
+
+    //         return [$withdrawTransaction, $depositTransaction];
+    //     });
+    // }
+
+    public function transfer(Wallet $from, Wallet $to, float $amount, string $desc = ''): Transaction
+    {
+        $this->ensureWalletNotLocked($from);
+        $this->ensureWalletNotLocked($to);
+
+        // Kurangi saldo pengirim, tandai sebagai pending
+        return $from->transactions()->create([
+            'type' => 'transfer',
+            'amount' => $amount,
+            'description' => $desc,
+            'status' => 'pending',
+            'meta' => [
+                'to_wallet_id' => $to->id
+            ]
+        ]);
+    }
+
+    public function confirmTransfer(Transaction $transaction): Transaction
+    {
+        if ($transaction->status !== 'pending') {
+            throw new \Exception("Transfer is not pending");
+        }
+
+        $toWallet = Wallet::find($transaction->meta['to_wallet_id']);
+        $this->ensureWalletNotLocked($toWallet);
+
+        // Tambah saldo penerima
+        $toWallet->transactions()->create([
+            'type' => 'deposit',
+            'amount' => $transaction->amount,
+            'description' => "Transfer from wallet #{$transaction->wallet_id}",
+        ]);
+
+        // Ubah status jadi complete
+        $transaction->update(['status' => 'completed']);
+
+        return $transaction;
+    }
+
+
+
+    public function refund(Transaction $transaction): Transaction
+    {
+        $wallet = $transaction->wallet;
+
+        $this->ensureWalletNotLocked($wallet);
+
+        // Tentukan arah refund berdasarkan jenis transaksi
+        $reverseType = match ($transaction->type) {
+            'deposit' => 'withdraw',
+            'withdraw', 'transfer' => 'deposit',
+            default => throw new \Exception("Cannot refund this transaction type"),
+        };
+
+        // Buat transaksi baru
+        return $wallet->transactions()->create([
+            'type' => $reverseType,
+            'amount' => $transaction->amount,
+            'description' => "Refund for transaction #{$transaction->id}",
+        ]);
+    }
+}
