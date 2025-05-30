@@ -20,7 +20,7 @@ Sebuah package Laravel untuk mengelola sistem wallet digital, termasuk fitur:
 Install via composer:
 
 ```bash
-composer require vergatan10/laravel-wallet:1.0.0
+composer require vergatan10/laravel-wallet:1.0.1
 ```
 
 Publish config & migration:

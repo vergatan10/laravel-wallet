@@ -5,7 +5,8 @@
     "license": "MIT",
     "autoload": {
       "psr-4": {
-        "Vergatan10\\Wallet\\": "src/"
+        "Vergatan10\\Wallet\\": "src/",
+        "Vergatan10\\Wallet\\Tests\\": "tests/"
       }
     },
     "extra": {
@@ -20,6 +21,9 @@
       "illuminate/support": "^10.0|^11.0|^12.0"
     },
     "minimum-stability": "dev",
-    "prefer-stable": true
-  }
-  
+    "prefer-stable": true,
+    "require-dev": {
+        "phpunit/phpunit": "^11.5",
+        "orchestra/testbench": "^10.3"
+    }
+}

@@ -179,7 +179,7 @@ class WalletService
                 if ($existingRefund) {
                     throw new \Exception("Transaction has already been refunded");
                 }
-                
+
 
                 // Tentukan arah refund berdasarkan jenis transaksi
                 $reverseType = match ($transaction->type) {
@@ -211,5 +211,10 @@ class WalletService
         } catch (Exception $e) {
             throw new Exception("Refund failed: " . $e->getMessage(), 0, $e);
         }
+    }
+
+    public function getBalance(Wallet $wallet)
+    {
+        return $wallet->balance;
     }
 }
