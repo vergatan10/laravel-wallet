@@ -17,8 +17,6 @@ Sebuah package Laravel untuk mengelola sistem wallet digital, termasuk fitur:
 
 ## 📦 Instalasi
 
-Tambahkan di composer.json:
-
 Install via composer:
 
 ```bash
